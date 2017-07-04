@@ -3,68 +3,85 @@ package com.ak.hadoop;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 
+import static org.junit.Assert.*;
+
 /**
  * Created by wujinbao on 2017/6/30.
  */
 public class HDFSUtilTest {
+
+    private HDFSUtil hdfsUtil;
+
+    @Before
+    public void before(){
+        hdfsUtil = HDFSUtil.getInstance();
+    }
+
+    @After
+    public void after() throws IOException {
+        hdfsUtil.close();
+    }
+
     @Test
-    public void testHDFS() throws IOException {
-        HDFSUtil hdfsUtil = HDFSUtil.getInstance();
+    public void testExits() throws IOException {
+        String dirPath = "hdfs://cluster1/user/hive/warehouse/dim_user";
+        String dirFile = "hdfs://cluster1/user/hive/warehouse/dim_user_file/user.txt";
+
+        assertTrue(hdfsUtil.exits(dirPath));
+        assertTrue(hdfsUtil.exits(dirFile));
+    }
+
+    @Test
+    public void testCreateFile() throws IOException {
+        String fileName = "hdfs://cluster1/user/hive/warehouse/dim_user/a.txt";
+        String fileConcent = "1\t2\t3\t4\t5\t6\t7\t8\n";
+
+        if (hdfsUtil.exits(fileName)) {
+            hdfsUtil.deleteFile(fileName, true);
+        }
 
 
-//        String newDir = "/test";
-//
-//        if(hdfsUtil.exits(newDir)) {
-//            System.out.println(newDir + " file exits");
-//        }else {
-//            boolean ret = hdfsUtil.createDirectory(newDir);
-//
-//            if (ret) {
-//                System.out.println(newDir + " create success");
-//            }else {
-//                System.out.println(newDir + " create fail");
-//            }
-//        }
-//
-//        String fileContent = "Hello world";
-//        String fileName = newDir + "/file.txt";
-//
-//        hdfsUtil.createFile(fileName, fileContent);
-//
-//        String readFileContent = hdfsUtil.readFile(fileName);
-//        System.out.println(readFileContent);
-//
-//
-//        FileStatus[] dirs = hdfsUtil.listFileStatus("/");
-//
-//        for (FileStatus s: dirs) {
-//            System.out.println(s);
-//        }
-//
-//
-//        RemoteIterator<LocatedFileStatus> fileStatusRemoteIterator = hdfsUtil.listFiles("/", true);
-//
-//        while (fileStatusRemoteIterator.hasNext()) {
-//            System.out.println(fileStatusRemoteIterator.next());
-//        }
-//
-//        boolean isDeleted = hdfsUtil.deleteFile(newDir,true);
-//        System.out.println(newDir + " had deleted");
+        hdfsUtil.createFile(fileName, fileConcent.getBytes());
+    }
+
+    @Test
+    public void testRenameFile() throws IOException {
+        String oldFileName = "hdfs://cluster1/user/hive/warehouse/dim_user/a.txt";
+        String newFileName = "hdfs://cluster1/user/hive/warehouse/dim_user/b.txt";
+
+        hdfsUtil.renameFile(oldFileName, newFileName);
+    }
+
+    @Test public void testReadFile() throws IOException {
+        String fileName = "hdfs://cluster1/user/hive/warehouse/dim_user/b.txt";
+        String fileConcent = "1\t2\t3\t4\t5\t6\t7\t8\n";
 
 
-
-//        String filePath = "hdfs://cluster1/user/hive/warehouse/static_cookie/a.txt";
-//        String fileContent = hdfsUtil.readFile(filePath);
-//        System.out.println(fileContent);
-
-//        String localFile = "/Users/wujinbao/tmp/user.txt";
-//        String remoteFile = "hdfs://cluster1/user/hive/warehouse/dim_user/user1.txt";
-//        hdfsUtil.copyFromLocalFile(localFile, remoteFile);
+        assertEquals(fileConcent, hdfsUtil.readFile(fileName));
 
     }
+
+
+    @Test public void testCreateDir() throws IOException {
+        String dirName = "hdfs://cluster1/user/hive/warehouse/dim_user_a";
+        assertTrue(hdfsUtil.createDirectory(dirName));
+    }
+
+    @Test public void testDeleteFile() throws IOException {
+        String dirName = "hdfs://cluster1/user/hive/warehouse/dim_user_a";
+        assertTrue(hdfsUtil.deleteFile(dirName, true));
+    }
+
+
+
+
+
+
 }
